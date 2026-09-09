@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logos/icon-logo.png" alt="VeriChain Logo" width="120" />
+<img src="logos/icon logo.png" alt="VeriChain Logo" width="120" />
 
 # VeriChain
 
@@ -406,7 +406,7 @@ License information will be added before the public release.
 
 <div align="center">
 
-<img src="logos/icon-logo.png" alt="VeriChain" width="72" />
+<img src="logos/icon logo.png" alt="VeriChain" width="72" />
 
 ### **VERIFY THE FILE.**
 
