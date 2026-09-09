@@ -1,0 +1,4 @@
+# PostgreSQL / ORM support kept ready for later phases.
+# Phase 1 keeps this as an optional install so the foundation can run cleanly.
+SQLAlchemy==2.0.36
+psycopg2-binary==2.9.9

@@ -1,0 +1,80 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+*.code-workspace
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.jks
+*.keystore
+*.token
+*.secret
+*.secrets
+**/secrets/
+**/.secrets/
+**/private/
+**/jwt*
+
+# Local runtime databases and evidence stores
+*.db
+*.sqlite
+*.sqlite3
+*.db3
+**/db_data/
+**/data/
+**/local_data/
+**/storage/**
+**/vault/**
+**/evidence/**
+**/uploads/**
+**/keys/**
+**/app/storage/**
+**/*.bak
+**/*.tmp
+**/*.temp
+**/*.log
+
+# Python / backend caches
+.venv/
+venv/
+ENV/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.coverage
+.coverage.*
+htmlcov/
+*.egg-info/
+
+# Node / frontend
+node_modules/
+.npm/
+.cache/
+.parcel-cache/
+coverage/
+
+# Build outputs
+build/
+dist/
+out/
+
+# Logs
+logs/
+*.log
+
+# Local project runtime
+start-verichain.sh
