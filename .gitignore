@@ -37,10 +37,12 @@ Thumbs.db
 **/local_data/
 **/storage/**
 **/vault/**
-**/evidence/**
 **/uploads/**
 **/keys/**
 **/app/storage/**
+apps/api/evidence/**
+apps/api/uploads/**
+evidence-vault/**
 **/*.bak
 **/*.tmp
 **/*.temp

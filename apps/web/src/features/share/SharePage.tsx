@@ -30,6 +30,8 @@ export default function SharePage() {
   const [sharePermissions, setSharePermissions] = useState<string[]>(['VIEW']);
   const [expiresAt, setExpiresAt] = useState('');
   const [error, setError] = useState('');
+    const [notice, setNotice] = useState('');
+    const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const { query } = useSearch();
 
@@ -79,7 +81,8 @@ export default function SharePage() {
     }
 
     try {
-      await apiRequest(`/evidence/${selectedEvidence.id}/shares`, {
+      setSending(true);
+      const created = await apiRequest<ShareItem>(`/evidence/${selectedEvidence.id}/shares`, {
         method: 'POST',
         body: JSON.stringify({
           recipient_user_id: Number(recipientUserId),
@@ -87,14 +90,19 @@ export default function SharePage() {
           expires_at: expiresAt ? new Date(expiresAt).toISOString() : null,
         }),
       });
+      await apiRequest(`/shares/${created.id}/send-email`, { method: 'POST' });
       const refreshed = await apiRequest<ShareItem[]>(`/evidence/${selectedEvidence.id}/shares`);
       setShares(refreshed);
       setRecipientUserId('');
       setSharePermissions(['VIEW']);
       setExpiresAt('');
       setError('');
+      setNotice(`Share created and email sent to ${recipientEmail}.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Share creation failed');
+      setNotice('');
+      setError(err instanceof Error ? err.message : 'Share creation or email delivery failed');
+    } finally {
+      setSending(false);
     }
   }
 
@@ -134,6 +142,7 @@ export default function SharePage() {
       </div>
 
       {error && <div className="auth-error">{error}</div>}
+  {notice && <div className="success-banner" role="status">{notice}</div>}
 
       <div className="evidence-layout">
         <div className="evidence-list">
@@ -195,7 +204,7 @@ export default function SharePage() {
                     ))}
                   </div>
                   <input type="datetime-local" value={expiresAt} onChange={(event) => setExpiresAt(event.target.value)} />
-                  <button type="button" onClick={createShare}>Create share</button>
+                  <button type="button" onClick={createShare} disabled={sending || !recipientUserId.trim()}>{sending ? 'Sending email…' : 'Create share and send email'}</button>
                 </div>
               </div>
 

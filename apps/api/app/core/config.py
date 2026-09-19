@@ -13,6 +13,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg2://verichain:verichain_pass@localhost:5432/verichain_dev"
     frontend_url: str = "http://localhost:5173"
     verichain_auto_sign: bool = False
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_from_email: str = ""
+    smtp_from_name: str = "VeriChain"
+    smtp_use_tls: bool = True
 
     @validator("secret_key")
     def secret_key_required(cls, value: str) -> str:

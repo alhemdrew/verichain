@@ -312,6 +312,12 @@ verichain/
 
 # 🧪 Engineering Status
 
+## ✉️ Email Sharing
+
+Evidence sharing creates an authorization-controlled share first, then sends an email through the configured SMTP provider. The original evidence is never attached to the email; the message contains a VeriChain link and the recorded permissions/expiry.
+
+To enable delivery in a local `.env`, configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_FROM_EMAIL`, and, when required by the provider, `SMTP_USERNAME`, `SMTP_PASSWORD`, and `SMTP_USE_TLS`. If SMTP is not configured or the provider rejects the message, VeriChain reports that state and does not claim the email was sent. See `.env.example` for the complete template.
+
 <div align="center">
 
 | Validation            |            Result |

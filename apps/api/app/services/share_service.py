@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import smtplib
 import uuid
+from email.message import EmailMessage
 from datetime import datetime, timezone
 from typing import Any
 
@@ -11,11 +13,39 @@ from app.models.audit import AuditEvent
 from app.models.evidence import Evidence
 from app.models.share import EvidenceShare
 from app.models.user import User
+from app.core.config import get_settings
 
 ALLOWED_PERMISSIONS = {"VIEW", "DOWNLOAD", "CREATE_DERIVATIVE"}
 
 
 class ShareService:
+    @staticmethod
+    def send_share_email(*, recipient: User, share: EvidenceShare, evidence: Evidence) -> None:
+        settings = get_settings()
+        if not settings.smtp_host or not settings.smtp_from_email:
+            raise RuntimeError("Email delivery is not configured. Set SMTP_HOST and SMTP_FROM_EMAIL.")
+
+        share_url = f"{settings.frontend_url.rstrip('/')}/share?share_id={share.id}"
+        message = EmailMessage()
+        message["Subject"] = f"VeriChain evidence shared: {evidence.original_filename}"
+        message["From"] = f"{settings.smtp_from_name} <{settings.smtp_from_email}>"
+        message["To"] = recipient.email
+        message.set_content(
+            f"{share.created_by.name if share.created_by else 'A VeriChain user'} shared evidence with you.\n\n"
+            f"File: {evidence.original_filename}\n"
+            f"Permissions: {', '.join(share.permissions)}\n"
+            f"Expires: {share.expires_at.isoformat() if share.expires_at else 'No expiration'}\n\n"
+            f"Open VeriChain to review the share: {share_url}\n\n"
+            "This message contains a link to VeriChain. Access remains subject to the share permissions and expiry recorded by the system."
+        )
+
+        with smtplib.SMTP(settings.smtp_host, settings.smtp_port, timeout=15) as smtp:
+            if settings.smtp_use_tls:
+                smtp.starttls()
+            if settings.smtp_username:
+                smtp.login(settings.smtp_username, settings.smtp_password)
+            smtp.send_message(message)
+
     @staticmethod
     def normalize_permissions(raw_permissions: Any) -> list[str]:
         if raw_permissions is None:

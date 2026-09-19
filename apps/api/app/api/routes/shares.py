@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import smtplib
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Response, status
@@ -35,6 +36,12 @@ class ShareResponse(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class ShareEmailResponse(BaseModel):
+    share_id: str
+    status: str
+    recipient_email: str
 
 
 @router.get("/evidence/{evidence_id}/shares")
@@ -150,6 +157,56 @@ def get_share(share_id: str, db: Session = Depends(get_db), current_user: User =
         "revoked_at": share.revoked_at,
         "status": status_name,
     }
+
+
+@router.post("/shares/{share_id}/send-email", response_model=ShareEmailResponse)
+def send_share_email(share_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    share = db.query(EvidenceShare).filter(EvidenceShare.id == share_id).first()
+    if share is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Share not found")
+    evidence = db.query(Evidence).filter(Evidence.id == share.evidence_id).first()
+    if evidence is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Evidence no longer exists")
+    if share.created_by_user_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the share creator can send its email")
+    if ShareService.set_share_status(share) != "ACTIVE":
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only active shares can be emailed")
+
+    try:
+        ShareService.send_share_email(recipient=share.recipient, share=share, evidence=evidence)
+    except RuntimeError as exc:
+        ShareService.record_audit(
+            db,
+            actor_id=current_user.id,
+            evidence_id=evidence.id,
+            share_id=share.id,
+            event_type="SHARE_EMAIL",
+            result="UNAVAILABLE",
+            details={"reason": str(exc)},
+        )
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc)) from exc
+    except (OSError, smtplib.SMTPException) as exc:
+        ShareService.record_audit(
+            db,
+            actor_id=current_user.id,
+            evidence_id=evidence.id,
+            share_id=share.id,
+            event_type="SHARE_EMAIL",
+            result="FAILED",
+            details={"reason": str(exc)},
+        )
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail="Email provider rejected the message") from exc
+
+    ShareService.record_audit(
+        db,
+        actor_id=current_user.id,
+        evidence_id=evidence.id,
+        share_id=share.id,
+        event_type="SHARE_EMAIL",
+        result="SUCCESS",
+        details={"recipient_email": share.recipient.email},
+    )
+    return {"share_id": share.id, "status": "SENT", "recipient_email": share.recipient.email}
 
 
 @router.get("/shares/{share_id}/evidence")

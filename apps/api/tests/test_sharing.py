@@ -204,3 +204,28 @@ def test_invalid_permission_is_rejected(client):
         headers={"Authorization": f"Bearer {token_owner}"},
     )
     assert resp.status_code == 400, resp.text
+
+
+def test_email_send_reports_unconfigured_provider(client):
+    token_owner = register_and_login(client, "Email Owner", "email-owner@example.com", "StrongPass123!", "Email Org")
+    token_recipient = register_and_login(client, "Email Recipient", "email-recipient@example.com", "StrongPass123!", "Email Org")
+    owner_user = client.get("/auth/me", headers={"Authorization": f"Bearer {token_owner}"}).json()["user"]
+    recipient_user = client.get("/auth/me", headers={"Authorization": f"Bearer {token_recipient}"}).json()["user"]
+
+    with session_module.SessionLocal() as db:
+        case = _create_local_case(db, organization_id=owner_user["organization_id"], created_by=owner_user["id"])
+        evidence = _create_evidence(db, owner_user["organization_id"], owner_user["id"], case.id, b"email-payload")
+
+    share = client.post(
+        f"/evidence/{evidence.id}/shares",
+        json={"recipient_user_id": recipient_user["id"], "permissions": ["VIEW"]},
+        headers={"Authorization": f"Bearer {token_owner}"},
+    )
+    assert share.status_code == 200, share.text
+
+    send = client.post(
+        f"/shares/{share.json()['id']}/send-email",
+        headers={"Authorization": f"Bearer {token_owner}"},
+    )
+    assert send.status_code == 503, send.text
+    assert "SMTP_HOST" in send.json()["detail"]
