@@ -152,13 +152,13 @@ VeriChain is designed to answer a different question:
 VeriChain treats an evidence record as an immutable reference to specific bytes, together with the metadata and custody events needed to understand how that record was handled. The lifecycle is:
 
 ```mermaid
-flowchart LR
-    A[Collect] --> B[Hash]
-    B --> C[Create manifest]
-    C --> D[Sign]
-    D --> E[Preserve]
-    E --> F[Record custody]
-    F --> G[Verify]
+graph LR
+      A["Collect"] --> B["Hash"]
+      B --> C["Create manifest"]
+      C --> D["Sign"]
+      D --> E["Preserve"]
+      E --> F["Record custody"]
+      F --> G["Verify"]
 ```
 
 ### Collection
@@ -227,9 +227,9 @@ The server does not trust a client-provided hash by itself. It compares the clai
 A derivative is a new evidence object, not a rewritten version of its parent. For example:
 
 ```mermaid
-flowchart LR
-    O[Original evidence\nEvidence A] --> R[Redacted copy\nEvidence B]
-    O --> S[Screenshot or extract\nEvidence C]
+graph LR
+      O["Original evidence"] --> R["Redacted copy"]
+      O --> S["Screenshot or extract"]
 ```
 
 Each derivative receives its own evidence ID, byte digest, manifest, and storage reference. The provenance record stores the parent ID, derivation type, description, and creation time. A reviewer can therefore verify the derivative separately while still navigating back to the original.
@@ -264,12 +264,12 @@ The complete screenshot index and limitations are documented in [docs/screenshot
 The functional product is a React web client backed by a FastAPI service. The API owns authentication, organization authorization, evidence records, custody events, signatures, reports, sharing, derivatives, and synchronization. Local storage and the optional encrypted vault preserve bytes close to the API process; PostgreSQL is available through the Docker configuration for a multi-service development setup.
 
 ```mermaid
-flowchart TB
-      Web[React web client] --> API[FastAPI API]
-      Desktop[Tauri scaffold] -. planned desktop shell .-> API
-      API --> Services[Evidence, security, custody, report, share, sync services]
-      Services --> Local[Local evidence storage and optional encrypted vault]
-      Services --> DB[(SQLite or PostgreSQL)]
+graph TB
+      Web["React web client"] --> API["FastAPI API"]
+      Desktop["Tauri scaffold"] -.-> API
+      API --> Services["Evidence, security, custody, report, share, sync"]
+      Services --> Local["Local evidence storage and optional vault"]
+      Services --> DB["SQLite or PostgreSQL"]
 ```
 
 The Tauri node is intentionally shown as a scaffold rather than a supported desktop runtime. The browser/API workflow is the current functional surface.
