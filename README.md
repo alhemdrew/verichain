@@ -57,6 +57,50 @@ Cryptographic digital evidence integrity and chain-of-custody platform for prese
 
 ---
 
+## Judge Quickstart
+
+VeriChain is a functional FastAPI + React web application. The shortest reliable evaluation path is:
+
+```bash
+git clone https://github.com/alhemdrew/verichain.git
+cd verichain
+python3 -m venv apps/api/.venv
+apps/api/.venv/bin/python -m pip install -r apps/api/requirements.txt
+cp .env.example apps/api/.env
+```
+
+Edit `apps/api/.env` and set a non-empty local `SECRET_KEY`. The default judge-friendly SQLite configuration is:
+
+```dotenv
+ENV=development
+DATABASE_URL=sqlite:///./verichain_local.db
+SECRET_KEY=replace-with-a-long-random-local-value
+FRONTEND_URL=http://localhost:5173
+CORS_ORIGINS=http://localhost:5173
+SEED_DEMO_ACCOUNTS=false
+```
+
+Start the API in one terminal:
+
+```bash
+cd apps/api
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Start the web app in a second terminal:
+
+```bash
+cd apps/web
+npm ci
+npm run dev -- --host 127.0.0.1
+```
+
+Open <http://localhost:5173>, register a fictional investigator, and follow the [synthetic judge walkthrough](docs/screenshots.md). The API health check is <http://localhost:8000/health> and should return `{"status":"ok"}`.
+│   └── ui/                   # Shared UI package scaffold
+For Windows PowerShell commands, troubleshooting, and the platform boundary, read [docs/windows.md](docs/windows.md).
+
+> **Safety boundary:** use synthetic files and reserved example addresses only. VeriChain preserves and verifies digital-object integrity; it does not prove that an underlying real-world event occurred.
+
 # 🔐 VeriChain
 
 ## **Digital evidence should not require blind trust.**
@@ -70,8 +114,6 @@ From the moment evidence is collected, VeriChain establishes a cryptographic ide
 > The custody chain proves its history.**
 
 ---
-
-## ⚡ At a Glance
 
 |     | Capability                  |                                      |
 | --- | --------------------------- | ------------------------------------ |
@@ -288,8 +330,7 @@ verichain/
 │
 ├── packages/
 │   ├── types/                # Shared TypeScript types
-│   ├── ui/                   # Shared UI components
-│   └── crypto-contracts/     # Cryptographic contracts
+│   └── ui/                   # Shared UI package scaffold
 │
 ├── docs/
 │   ├── architecture.md
@@ -300,10 +341,11 @@ verichain/
 │
 ├── docker/
 ├── logos/
-│   └── icon-logo.png
+│   ├── icon logo.png
+│   ├── primary horizontal logo.png
+│   ├── stacked logo.png
+│   └── standalone logo.png
 │
-├── IMPLEMENTATION_PLAN.md
-├── VERICHAIN_SPEC.md
 ├── README.md
 └── .env.example
 ```
@@ -332,6 +374,8 @@ To enable delivery in a local `.env`, configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_
 | Digital Signatures    | ✅ **Implemented** |
 | Secure Sharing        | ✅ **Implemented** |
 | Provenance            | ✅ **Implemented** |
+| GitHub Actions        | ✅ **Backend + frontend checks** |
+| Tauri desktop         | ⚠️ **Scaffold only** |
 
 </div>
 
@@ -352,11 +396,13 @@ All evidence used in this demonstration is synthetic and was created specificall
 ## 🖥️ Development Requirements
 
 - Linux development was verified with Python 3.12, Node.js 18, and npm 9.
-- Copy `.env.example` to a local `.env`; configure `SECRET_KEY` and `DATABASE_URL` before starting the API.
+- Copy `.env.example` to `apps/api/.env`; configure `SECRET_KEY`, `DATABASE_URL`, `FRONTEND_URL`, and `CORS_ORIGINS` before starting the API.
 - Backend: `cd apps/api && .venv/bin/python -m pytest -q`
 - Frontend: `cd apps/web && npm install && npm run dev`
 - Frontend validation: `cd apps/web && npm run build && npx tsc --noEmit`
 - Optional SMTP delivery requires the `SMTP_*` values documented in `.env.example`. No provider delivery was claimed in the local demo.
+- Demo-account seeding is disabled by default. For an isolated local demonstration only, set `SEED_DEMO_ACCOUNTS=true`; never use seeded credentials in a public deployment.
+- The Docker Compose file provisions PostgreSQL and the API service, but Docker deployment is not claimed as tested in this Linux session.
 
 ### Windows
 
@@ -364,7 +410,7 @@ The application code avoids Linux-only storage paths, but Windows packaging was 
 
 ## Project Status
 
-The web/API prototype supports authentication, organization-scoped cases, evidence preservation, SHA-256 sealing, Ed25519 signing, custody verification, derivatives, sharing, SMTP-backed share notifications, offline/local evidence, synchronization, and integrity reports. Production deployment still requires hardened key management, provider configuration, operational monitoring, and a completed desktop packaging path.
+The web/API prototype supports authentication, organization-scoped cases, evidence preservation, SHA-256 sealing, Ed25519 signing, custody verification, derivatives, sharing, SMTP-backed share notifications, offline/local evidence, synchronization, and integrity reports. The browser/API workflow was exercised on Linux; Windows CI checks are configured but a native Windows manual run has not been performed. Production deployment still requires hardened key management, provider configuration, operational monitoring, upload limits, and a completed desktop packaging path.
 
 ---
 

@@ -11,6 +11,7 @@ from app.api.routes.reports import router as reports_router
 from app.api.routes.shares import router as shares_router
 from app.api.routes.sync import router as sync_router
 from app.api.routes.users import router as users_router
+from app.core.config import get_settings
 from app.db.session import Base, SessionLocal, engine
 from app.models.audit import AuditEvent  # noqa: F401
 from app.models.case import Case  # noqa: F401
@@ -23,6 +24,7 @@ from app.models.user import Organization, User  # noqa: F401
 from app.security.passwords import hash_password, verify_password
 
 load_dotenv()
+settings = get_settings()
 
 
 def ensure_demo_accounts() -> None:
@@ -99,13 +101,14 @@ def ensure_database_compatibility() -> None:
 
 Base.metadata.create_all(bind=engine)
 ensure_database_compatibility()
-ensure_demo_accounts()
+if settings.seed_demo_accounts:
+    ensure_demo_accounts()
 
 app = FastAPI(title="VeriChain API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[origin.strip() for origin in (settings.cors_origins or settings.frontend_url).split(",") if origin.strip()],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

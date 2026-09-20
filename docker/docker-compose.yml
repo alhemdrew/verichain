@@ -17,6 +17,10 @@ services:
     environment:
       DATABASE_URL: postgresql://verichain:verichain_pass@db:5432/verichain_dev
       ENV: development
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY before docker compose up}
+      FRONTEND_URL: http://localhost:5173
+      CORS_ORIGINS: http://localhost:5173
+      SEED_DEMO_ACCOUNTS: "false"
     ports:
       - "8000:8000"
     depends_on:

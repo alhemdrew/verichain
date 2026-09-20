@@ -12,7 +12,9 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60 * 12
     database_url: str = "postgresql+psycopg2://verichain:verichain_pass@localhost:5432/verichain_dev"
     frontend_url: str = "http://localhost:5173"
+    cors_origins: str = ""
     verichain_auto_sign: bool = False
+    seed_demo_accounts: bool = False
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_username: str = ""
