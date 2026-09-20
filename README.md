@@ -57,7 +57,7 @@ Cryptographic digital evidence integrity and chain-of-custody platform for prese
 
 ---
 
-## Judge Quickstart
+## Quickstart
 
 VeriChain is a functional FastAPI + React web application. The shortest reliable evaluation path is:
 
