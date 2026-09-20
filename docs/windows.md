@@ -11,7 +11,7 @@ Install:
 - Git for Windows.
 - A modern browser such as Chrome, Edge, or Firefox.
 
-PostgreSQL is optional for the simplest evaluation path. The local SQLite path is suitable for a judge walkthrough. Use PostgreSQL when testing a multi-user deployment or Docker workflow.
+PostgreSQL is optional for the simplest local workflow. The local SQLite path is suitable for a first run. Use PostgreSQL when testing a multi-user deployment or Docker workflow.
 
 ## Install
 
@@ -78,7 +78,7 @@ npm run dev -- --host 127.0.0.1
 
 Open <http://localhost:5173> in the browser. Register a synthetic investigator account, create a case, and upload a synthetic file. Do not use real evidence or personal information for a local demonstration.
 
-## Judge walkthrough
+## Verification walkthrough
 
 1. Register with a fictional name, a reserved `example.com` email, and a local password.
 2. Create a case and note its organization-scoped `CASE-XXXX` number.
@@ -91,6 +91,16 @@ Open <http://localhost:5173> in the browser. Register a synthetic investigator a
 9. Synchronize local evidence only after the API is reachable.
 
 The original evidence bytes must remain unchanged throughout this walkthrough.
+
+## Optional launcher
+
+After the virtual environment and frontend dependencies are installed, the repository also provides a native PowerShell launcher:
+
+```powershell
+.\start-verichain.ps1
+```
+
+It opens separate windows for the API and Vite development server. Close those windows to stop the services. The two-terminal commands above remain the most transparent troubleshooting path.
 
 ## Troubleshooting
 

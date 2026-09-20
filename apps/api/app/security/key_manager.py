@@ -14,7 +14,8 @@ PUBLIC_KEY_PATH = KEYS_DIR / "verichain_signing_public_key.pem"
 
 def _ensure_key_dir() -> None:
     KEYS_DIR.mkdir(parents=True, exist_ok=True)
-    os.chmod(KEYS_DIR, 0o700)
+    if os.name != "nt":
+        os.chmod(KEYS_DIR, 0o700)
 
 
 def generate_or_load_signing_keypair() -> tuple[ed25519.Ed25519PrivateKey, ed25519.Ed25519PublicKey, str]:
@@ -46,8 +47,9 @@ def generate_or_load_signing_keypair() -> tuple[ed25519.Ed25519PrivateKey, ed255
             format=serialization.PublicFormat.SubjectPublicKeyInfo,
         )
     )
-    os.chmod(PRIVATE_KEY_PATH, 0o600)
-    os.chmod(PUBLIC_KEY_PATH, 0o644)
+    if os.name != "nt":
+        os.chmod(PRIVATE_KEY_PATH, 0o600)
+        os.chmod(PUBLIC_KEY_PATH, 0o644)
 
     public_bytes = public_key.public_bytes(
         encoding=serialization.Encoding.Raw,

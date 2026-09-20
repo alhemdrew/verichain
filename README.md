@@ -365,6 +365,7 @@ All evidence used in this demonstration is synthetic and was created specificall
 - Backend: `cd apps/api && .venv/bin/python -m pytest -q`
 - Frontend: `cd apps/web && npm install && npm run dev`
 - Frontend validation: `cd apps/web && npm run build && npx tsc --noEmit`
+- Windows launcher: `.\start-verichain.ps1` from PowerShell after installing dependencies.
 - Optional SMTP delivery requires the `SMTP_*` values documented in `.env.example`. No provider delivery was claimed in the local demo.
 - Demo-account seeding is disabled by default. For an isolated local demonstration only, set `SEED_DEMO_ACCOUNTS=true`; never use seeded credentials in a public deployment.
 - The Docker Compose file provisions PostgreSQL and the API service, but Docker deployment is not claimed as tested in this Linux session.

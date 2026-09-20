@@ -25,7 +25,8 @@ class LocalVaultService:
     def _ensure_directories() -> None:
         LocalVaultService.BASE_DIR.mkdir(parents=True, exist_ok=True)
         LocalVaultService.KEY_PATH.parent.mkdir(parents=True, exist_ok=True)
-        os.chmod(LocalVaultService.KEY_PATH.parent, 0o700)
+        if os.name != "nt":
+            os.chmod(LocalVaultService.KEY_PATH.parent, 0o700)
 
     @staticmethod
     def _derive_vault_key() -> bytes:
@@ -35,7 +36,8 @@ class LocalVaultService:
 
         key = AESGCM.generate_key(bit_length=256)
         LocalVaultService.KEY_PATH.write_bytes(key)
-        os.chmod(LocalVaultService.KEY_PATH, 0o600)
+        if os.name != "nt":
+            os.chmod(LocalVaultService.KEY_PATH, 0o600)
         return key
 
     @staticmethod
