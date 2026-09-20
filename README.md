@@ -389,6 +389,13 @@ The application was exercised with synthetic case `CASE-0001` and synthetic evid
       <img src="docs/screenshots/13-summary-report.png" alt="VeriChain summary report" width="32%" />
 </p>
 
+<p align="center">
+      <img src="docs/screenshots/05-evidence-detail.png" alt="Evidence workspace with integrity states" width="24%" />
+      <img src="docs/screenshots/06-verification.png" alt="Presented-file verification" width="24%" />
+      <img src="docs/screenshots/08-sharing-controls.png" alt="Permissioned evidence sharing" width="24%" />
+      <img src="docs/screenshots/09-reports-page.png" alt="In-app integrity reports" width="24%" />
+</p>
+
 ## 🧪 Synthetic Data Statement
 
 All evidence used in this demonstration is synthetic and was created specifically for testing VeriChain's evidence-integrity and chain-of-custody workflows. No real personal data is used.
