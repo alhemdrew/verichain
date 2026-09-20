@@ -59,7 +59,7 @@ Cryptographic digital evidence integrity and chain-of-custody platform for prese
 
 ## Quickstart
 
-VeriChain is a functional FastAPI + React web application. The shortest reliable evaluation path is:
+VeriChain is a functional FastAPI + React web application. The shortest reliable local setup is:
 
 ```bash
 git clone https://github.com/alhemdrew/verichain.git
@@ -69,7 +69,7 @@ apps/api/.venv/bin/python -m pip install -r apps/api/requirements.txt
 cp .env.example apps/api/.env
 ```
 
-Edit `apps/api/.env` and set a non-empty local `SECRET_KEY`. The default judge-friendly SQLite configuration is:
+Edit `apps/api/.env` and set a non-empty local `SECRET_KEY`. The default local SQLite configuration is:
 
 ```dotenv
 ENV=development
