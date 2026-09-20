@@ -261,36 +261,18 @@ The complete screenshot index and limitations are documented in [docs/screenshot
 
 # 🏗️ Architecture
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│                      VERICHAIN                          │
-│                                                         │
-│   React Web                  Tauri Desktop              │
-│       │                           │                     │
-│       └────────────┬──────────────┘                     │
-│                    ▼                                    │
-│               FastAPI API                               │
-│                    │                                    │
-│        ┌───────────┼────────────┐                       │
-│        ▼           ▼            ▼                       │
-│    Evidence     Security      Sync                      │
-│    Services     Services     Services                    │
-│        │           │            │                       │
-│        └───────────┼────────────┘                       │
-│                    ▼                                    │
-│              Data / Storage                             │
-│              ┌───────────┐                              │
-│              │PostgreSQL │                              │
-│              └───────────┘                              │
-│                                                         │
-│              Local Offline Layer                        │
-│              ┌───────────┐                              │
-│              │  SQLite   │                              │
-│              │Encrypted  │                              │
-│              │   Vault   │                              │
-│              └───────────┘                              │
-└─────────────────────────────────────────────────────────┘
+The functional product is a React web client backed by a FastAPI service. The API owns authentication, organization authorization, evidence records, custody events, signatures, reports, sharing, derivatives, and synchronization. Local storage and the optional encrypted vault preserve bytes close to the API process; PostgreSQL is available through the Docker configuration for a multi-service development setup.
+
+```mermaid
+flowchart TB
+      Web[React web client] --> API[FastAPI API]
+      Desktop[Tauri scaffold] -. planned desktop shell .-> API
+      API --> Services[Evidence, security, custody, report, share, sync services]
+      Services --> Local[Local evidence storage and optional encrypted vault]
+      Services --> DB[(SQLite or PostgreSQL)]
 ```
+
+The Tauri node is intentionally shown as a scaffold rather than a supported desktop runtime. The browser/API workflow is the current functional surface.
 
 ---
 
