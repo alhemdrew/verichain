@@ -152,8 +152,8 @@ def _build_report_pdf_bytes(report: dict, evidence: Evidence, mode: str, db: Ses
         pdf.line(margin, 56, page_w - margin, 56)
         # add explicit integrity check label for tests and clarity
         pdf.setFillColor(navy)
-        pdf.setFont("Helvetica-Bold", 11)
-        pdf.drawString(margin, 200, "Integrity Check")
+        pdf.setFont("Helvetica-Bold", 8)
+        pdf.drawString(margin, 70, "Integrity Check")
         pdf.setFillColor(slate)
         pdf.setFont("Helvetica", 8)
         pdf.drawString(margin, 42, f"Report ID: {snapshot.get('report_id')}")

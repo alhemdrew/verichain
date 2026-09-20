@@ -15,6 +15,7 @@ from app.models.user import User
 from app.security.crypto import build_manifest, canonical_json, manifest_hash
 from app.security.key_manager import current_key_id
 from app.services.custody_service import CustodyService
+from app.services.evidence_service import EvidenceService
 from app.services.local_vault_service import LocalVaultService
 from app.services.sync_queue_service import SyncQueueService
 
@@ -96,9 +97,13 @@ def _validate_evidence_payload(payload: dict, current_user: User, db: Session) -
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Signature validation failed") from exc
 
     if evidence.storage_reference:
-        local_bytes = LocalVaultService.retrieve_evidence(evidence)
+        local_bytes = (
+            LocalVaultService.retrieve_evidence(evidence)
+            if evidence.vault_path
+            else EvidenceService.get_file_bytes(evidence)
+        )
         if hashlib.sha256(local_bytes).hexdigest().lower() != (evidence.sha256 or evidence.original_sha256 or actual_hash).lower():
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Vault content hash mismatch")
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Local evidence content hash mismatch")
 
     return evidence
 
@@ -121,8 +126,12 @@ def sync_evidence(
         db.commit()
 
         if evidence.storage_reference:
-            bytes_from_vault = LocalVaultService.retrieve_evidence(evidence)
-            if hashlib.sha256(bytes_from_vault).hexdigest().lower() != (evidence.sha256 or evidence.original_sha256 or "").lower():
+            local_bytes = (
+                LocalVaultService.retrieve_evidence(evidence)
+                if evidence.vault_path
+                else EvidenceService.get_file_bytes(evidence)
+            )
+            if hashlib.sha256(local_bytes).hexdigest().lower() != (evidence.sha256 or evidence.original_sha256 or "").lower():
                 raise ValueError("Local evidence bytes do not match the sealed hash")
 
         evidence.sync_state = "SYNCED"

@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logos/icon logo.png" alt="VeriChain Logo" width="120" />
+<img src="apps/web/public/logos/icon-logo.png" alt="VeriChain Logo" width="120" />
 
 # VeriChain
 
@@ -13,7 +13,7 @@ Cryptographic digital evidence integrity and chain-of-custody platform for prese
 ![Status](https://img.shields.io/badge/status-active_development-00C853?style=for-the-badge)
 ![Security](https://img.shields.io/badge/security-cryptographic-7C3AED?style=for-the-badge)
 ![Offline](https://img.shields.io/badge/offline-first-00A6FF?style=for-the-badge)
-![Tests](https://img.shields.io/badge/tests-60%20passing-16A34A?style=for-the-badge)
+![Tests](https://img.shields.io/badge/tests-61%20passing-16A34A?style=for-the-badge)
 
 <br /><br />
 
@@ -322,7 +322,7 @@ To enable delivery in a local `.env`, configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_
 
 | Validation            |            Result |
 | --------------------- | ----------------: |
-| Backend Tests         |   ✅ **60 passed** |
+| Backend Tests         |   ✅ **61 passed** |
 | Frontend Build        |     ✅ **Passing** |
 | TypeScript            |     ✅ **Passing** |
 | Secret Protection     |    ✅ **Verified** |
@@ -334,6 +334,37 @@ To enable delivery in a local `.env`, configure `SMTP_HOST`, `SMTP_PORT`, `SMTP_
 | Provenance            | ✅ **Implemented** |
 
 </div>
+
+## 📸 Demonstration Screenshots
+
+The application was exercised with synthetic case `CASE-0001` and synthetic evidence. A short showcase is included below; the complete reviewed capture index is in [docs/screenshots.md](docs/screenshots.md).
+
+<p align="center">
+      <img src="docs/screenshots/02-dashboard.png" alt="Authenticated VeriChain dashboard" width="32%" />
+      <img src="docs/screenshots/04-evidence-upload.png" alt="VeriChain evidence workspace" width="32%" />
+      <img src="docs/screenshots/13-summary-report.png" alt="VeriChain summary report" width="32%" />
+</p>
+
+## 🧪 Synthetic Data Statement
+
+All evidence used in this demonstration is synthetic and was created specifically for testing VeriChain's evidence-integrity and chain-of-custody workflows. No real personal data is used.
+
+## 🖥️ Development Requirements
+
+- Linux development was verified with Python 3.12, Node.js 18, and npm 9.
+- Copy `.env.example` to a local `.env`; configure `SECRET_KEY` and `DATABASE_URL` before starting the API.
+- Backend: `cd apps/api && .venv/bin/python -m pytest -q`
+- Frontend: `cd apps/web && npm install && npm run dev`
+- Frontend validation: `cd apps/web && npm run build && npx tsc --noEmit`
+- Optional SMTP delivery requires the `SMTP_*` values documented in `.env.example`. No provider delivery was claimed in the local demo.
+
+### Windows
+
+The application code avoids Linux-only storage paths, but Windows packaging was not tested in this Linux environment. The Tauri directory is currently a scaffold, so no Windows installer or desktop build is claimed. Validate the web/API workflow on Windows first, then install Rust and the Tauri CLI before attempting a desktop build.
+
+## Project Status
+
+The web/API prototype supports authentication, organization-scoped cases, evidence preservation, SHA-256 sealing, Ed25519 signing, custody verification, derivatives, sharing, SMTP-backed share notifications, offline/local evidence, synchronization, and integrity reports. Production deployment still requires hardened key management, provider configuration, operational monitoring, and a completed desktop packaging path.
 
 ---
 
@@ -412,7 +443,7 @@ License information will be added before the public release.
 
 <div align="center">
 
-<img src="logos/icon logo.png" alt="VeriChain" width="72" />
+<img src="apps/web/public/logos/icon-logo.png" alt="VeriChain" width="72" />
 
 ### **VERIFY THE FILE.**
 
