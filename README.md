@@ -57,7 +57,7 @@ Cryptographic digital evidence integrity and chain-of-custody platform for prese
 
 ---
 
-## Judge Quickstart
+## Quickstart
 
 VeriChain is a functional FastAPI + React web application. The shortest reliable evaluation path is:
 
@@ -95,8 +95,7 @@ npm ci
 npm run dev -- --host 127.0.0.1
 ```
 
-Open <http://localhost:5173>, register a fictional investigator, and follow the [synthetic judge walkthrough](docs/screenshots.md). The API health check is <http://localhost:8000/health> and should return `{"status":"ok"}`.
-│   └── ui/                   # Shared UI package scaffold
+Open <http://localhost:5173>, register a fictional investigator, and follow the [synthetic walkthrough](docs/screenshots.md). The API health check is <http://localhost:8000/health> and should return `{"status":"ok"}`.
 For Windows PowerShell commands, troubleshooting, and the platform boundary, read [docs/windows.md](docs/windows.md).
 
 > **Safety boundary:** use synthetic files and reserved example addresses only. VeriChain preserves and verifies digital-object integrity; it does not prove that an underlying real-world event occurred.
@@ -148,138 +147,115 @@ VeriChain is designed to answer a different question:
 
 ---
 
-# 🧠 The VeriChain Model
+# Evidence Lifecycle
 
-```text
-COLLECT
-   │
-   ▼
-FINGERPRINT
-   │
-   ▼
-MANIFEST
-   │
-   ▼
-SIGN
-   │
-   ▼
-SEAL
-   │
-   ▼
-CUSTODY CHAIN
-   │
-   ├───────────────┐
-   ▼               ▼
-OFFLINE          ONLINE
-VAULT            STORAGE
-   │               │
-   └───────┬───────┘
-           ▼
-        VERIFY
-           │
-           ▼
-     TRUSTED RECORD
+VeriChain treats an evidence record as an immutable reference to specific bytes, together with the metadata and custody events needed to understand how that record was handled. The lifecycle is:
+
+```mermaid
+flowchart LR
+    A[Collect] --> B[Hash]
+    B --> C[Create manifest]
+    C --> D[Sign]
+    D --> E[Preserve]
+    E --> F[Record custody]
+    F --> G[Verify]
 ```
 
----
+### Collection
 
-# 🔬 Security Architecture
+The application accepts an uploaded file and records its filename, media type, size, case, organization, and creator. The original bytes are written to local storage without changing their content. Metadata edits are deliberately separate from evidence-byte identity.
 
-VeriChain combines several independent integrity mechanisms:
+### Hashing
 
-```text
-                  ┌──────────────────────┐
-                  │    EVIDENCE BYTES    │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                       ┌───────────┐
-                       │ SHA-256   │
-                       └─────┬─────┘
-                             │
-                             ▼
-                       ┌───────────┐
-                       │ MANIFEST  │
-                       └─────┬─────┘
-                             │
-                             ▼
-                       ┌───────────┐
-                       │ Ed25519   │
-                       │ SIGNATURE │
-                       └─────┬─────┘
-                             │
-                             ▼
-                       ┌───────────┐
-                       │  CUSTODY  │
-                       │   CHAIN   │
-                       └─────┬─────┘
-                             │
-                             ▼
-                       ┌───────────┐
-                       │PROVENANCE │
-                       └─────┬─────┘
-                             │
-                             ▼
-                         VERIFY
+VeriChain calculates a SHA-256 digest from the actual bytes. The digest is a compact fingerprint: if the bytes change, the calculated value should change. A hash does not describe whether the content is truthful; it describes whether the content matches the recorded bytes.
+
+### Manifest creation
+
+The canonical manifest binds the evidence ID, case and organization, filename, media type, size, collection time, collector, and SHA-256 value. Its canonical JSON representation is hashed as the manifest digest, giving verification a stable representation of the record metadata.
+
+### Signing
+
+When signing is requested or enabled by configuration, VeriChain signs the canonical evidence manifest with Ed25519. The signature is an authenticity and integrity check for the signed record under the configured key; it is not a statement about the truth of the event shown by the file.
+
+### Preservation
+
+The original file remains in local evidence storage. The optional local vault stores an encrypted copy using the repository's AES-GCM service. Sealing records the evidence digest and manifest digest; it does not rewrite the original bytes.
+
+### Custody recording
+
+Lifecycle actions such as creation, sealing, signing, verification, sharing, and synchronization create custody or audit records. Custody events are linked and can be checked as a chain. The chain records what VeriChain observed through its API; it does not independently prove what happened outside the system.
+
+### Verification
+
+Verification recalculates the current file digest, checks the manifest, validates an available signature, and verifies the custody chain. A mismatch is reported as a failure or no-match result. Missing artifacts are reported as unavailable or incomplete rather than being promoted to a successful verification.
+
+# Security Architecture
+
+VeriChain uses several related but distinct controls:
+
+| Control | What it protects | How verification uses it |
+| --- | --- | --- |
+| SHA-256 | The identity of the recorded bytes | Rehashes the current bytes and compares the result with the recorded digest. |
+| Canonical manifest | The evidence metadata and its relationship to the digest | Rebuilds the canonical record and compares its manifest digest. |
+| Ed25519 signature | The signed manifest against unauthorized alteration | Uses the stored public key to validate the signature over the canonical payload. |
+| Custody chain | The order and linkage of recorded lifecycle events | Recomputes event links and reports whether the chain is valid. |
+| Provenance links | Parent-child relationships between original and derivative evidence | Confirms that a derivative points to its recorded parent without replacing the parent. |
+
+These controls complement one another. A matching SHA-256 value does not prove that a signature exists, and a valid signature does not make a modified file valid if the current bytes no longer match the signed record. Reports therefore expose separate hash, manifest, signature, custody, synchronization, and provenance states.
+
+When a required check fails, the API returns a failed verification state and the UI presents the mismatch. When a required artifact is missing, the result is unavailable or incomplete. VeriChain does not silently convert either condition into `VERIFIED`.
+
+# Offline Preservation and Synchronization
+
+The currently verified offline path is the API/local-storage workflow, not a full browser PWA. Evidence can be preserved locally with a `LOCAL_ONLY` synchronization state, and the application can later submit the original bytes and recorded metadata to the synchronization endpoint.
+
+The workflow is:
+
+1. Evidence is collected and written to local storage.
+2. The local record retains its evidence ID, original hash, manifest information, and pending synchronization state.
+3. If configured, an encrypted local-vault copy can provide an additional preservation layer.
+4. When connectivity is available, synchronization submits the original bytes and record identifiers.
+5. The server recalculates the uploaded SHA-256 value and validates organization, case, manifest, signature, and local content consistency.
+6. A successful request changes the record to `SYNCED`; failures remain observable and can be retried through the synchronization workflow.
+
+The server does not trust a client-provided hash by itself. It compares the claimed value with the bytes received. Offline browser persistence through IndexedDB, background sync, and a packaged desktop experience are not currently claimed as complete features.
+
+![Evidence workspace showing local and verified states](docs/screenshots/05-evidence-detail.png)
+
+# Evidence Provenance
+
+A derivative is a new evidence object, not a rewritten version of its parent. For example:
+
+```mermaid
+flowchart LR
+    O[Original evidence\nEvidence A] --> R[Redacted copy\nEvidence B]
+    O --> S[Screenshot or extract\nEvidence C]
 ```
 
----
+Each derivative receives its own evidence ID, byte digest, manifest, and storage reference. The provenance record stores the parent ID, derivation type, description, and creation time. A reviewer can therefore verify the derivative separately while still navigating back to the original.
 
-# 📴 Offline → Online
+The relationship proves that VeriChain recorded a declared parent-child link. It does not prove that the transformation was semantically correct, that redaction removed every sensitive detail, or that the source event represented by either file was truthful.
 
-Connectivity should not determine whether evidence can be preserved.
+![Permissioned sharing and recipient controls](docs/screenshots/08-sharing-controls.png)
 
-VeriChain can collect and protect evidence locally before connectivity returns.
+# Workflow Screens
 
-```text
-┌─────────────┐
-│   OFFLINE   │
-└──────┬──────┘
-       │
-       ▼
-   Collect
-       │
-       ▼
-    SHA-256
-       │
-       ▼
-   Sign + Seal
-       │
-       ▼
- Encrypted Vault
-       │
-       ▼
-   Sync Queue
-       │
-       │ INTERNET RETURNS
-       ▼
- Secure Synchronization
-       │
-       ▼
- Server Verification
-```
+The reviewed screenshots below show the main application surfaces using synthetic data. They are documentation artifacts, not claims about real people, cases, or evidence.
 
----
+| Stage | Screenshot | What to look for |
+| --- | --- | --- |
+| Access | [Login](docs/screenshots/01-login-page.png) | Authentication entry point and VeriChain identity. |
+| Workspace | [Dashboard](docs/screenshots/02-dashboard.png) | Case/evidence counts and synchronization status. |
+| Case setup | [Case list](docs/screenshots/03-case-created.png) | Organization-scoped case numbering. |
+| Registration | [Evidence upload](docs/screenshots/04-evidence-upload.png) | File registration and preservation controls. |
+| Evidence | [Evidence detail](docs/screenshots/05-evidence-detail.png) | Recorded integrity states and custody actions. |
+| Verification | [Verification](docs/screenshots/06-verification.png) | Presented-file verification with explicit pending state. |
+| Sharing | [Sharing controls](docs/screenshots/08-sharing-controls.png) | Recipient lookup, permissions, expiry, and delivery action. |
+| Reporting | [Reports](docs/screenshots/09-reports-page.png) | In-app report state and PDF download actions. |
+| Profile | [Settings](docs/screenshots/10-settings-profile.png) | Investigator identity and account controls. |
+| PDF output | [Summary report](docs/screenshots/13-summary-report.png) and [detailed report](docs/screenshots/14-detailed-report.png) | Rendered report layout, status, and technical evidence. |
 
-# 🧬 Evidence Provenance
-
-Original evidence remains distinct from derivatives.
-
-```text
-                   ORIGINAL
-                      │
-                 Evidence A
-                      │
-                ──────┴──────
-                      │
-                 DERIVATION
-                ╱           ╲
-               ▼             ▼
-        Evidence B       Evidence C
-        Screenshot       Redacted Copy
-```
-
-Every derivative receives its own cryptographic identity while retaining an explicit relationship to its parent.
+The complete screenshot index and limitations are documented in [docs/screenshots.md](docs/screenshots.md).
 
 ---
 
